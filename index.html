@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>MIAU VIP CLUB</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@200;300;400;700&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --gold: #ffd700;
+    --gold2: #ff8c00;
+    --pink: #ff69b4;
+    --rose: #ff1493;
+    --silver: #e8e8f0;
+    --purple: #9b59b6;
+    --deep: #0a0010;
+  }
+
+  body {
+    color: white;
+    font-family: 'Raleway', 'Arial', sans-serif;
+    height: 100dvh;
+    overflow: hidden;
+    background: #000;
+  }
+
+  #bgCanvas {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+  }
+  #particleCanvas {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 1;
+  }
+  #sparkleCanvas {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 2;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: fixed; inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
+    text-align: center;
+    padding: 16px 20px 28px;
+    gap: 8px;
+    overflow-y: auto;
+    z-index: 5;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen.active {
+    display: flex;
+    animation: fadeSlide 0.7s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes fadeSlide {
+    from { opacity:0; transform:translateY(30px) scale(0.96); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
+    font-weight: 300;
+    letter-spacing: 8px;
+    text-shadow: 0 0 30px gold, 0 0 60px rgba(255,100,0,0.5);
+    flex-shrink: 0; line-height: 1.2;
+  }
+  h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+    font-weight: 300;
+    letter-spacing: 6px;
+    color: #ffd700;
+    flex-shrink: 0;
+  }
+  .subtitle {
+    opacity: 0.75;
+    font-size: clamp(0.8rem, 2.9vw, 0.95rem);
+    font-weight: 300;
+    line-height: 1.6;
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; max-width: 300px; flex-shrink: 0;
+    margin: 1px 0;
+  }
+  .divider-line {
+    flex:1; height:1px;
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.6), transparent);
+  }
+  .divider-icon { font-size: 0.85rem; opacity: 0.8; }
+
+  /* ── ICON ANIMATIONS ── */
+  .icon-row {
+    display: flex; gap: 8px; justify-content: center;
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    flex-shrink: 0;
+  }
+  .icon-float { animation: iconFloat 3s ease-in-out infinite alternate; display:inline-block; }
+  .icon-spin  { animation: iconSpin 8s linear infinite; display:inline-block; }
+  .icon-pulse { animation: iconPulse 2s ease-in-out infinite; display:inline-block; }
+  .icon-shimmer { animation: iconShimmer 1.8s ease-in-out infinite; display:inline-block; }
+  .icon-sway  { animation: iconSway 2.5s ease-in-out infinite; display:inline-block; }
+
+  @keyframes iconFloat { from{transform:translateY(0) rotate(-5deg);} to{transform:translateY(-10px) rotate(5deg);} }
+  @keyframes iconSpin  { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  @keyframes iconPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
+  @keyframes iconShimmer {
+    0%,100%{filter:brightness(1) drop-shadow(0 0 4px gold);}
+    50%{filter:brightness(1.6) drop-shadow(0 0 12px #fff) drop-shadow(0 0 20px gold);}
+  }
+  @keyframes iconSway { 0%,100%{transform:rotate(-8deg) translateY(0);} 50%{transform:rotate(8deg) translateY(-6px);} }
+
+  /* ── BUTTONS ── */
+  .btns { display:flex; flex-direction:column; gap:9px; width:100%; max-width:300px; flex-shrink:0; }
+
+  button {
+    padding: 13px 20px; border: none; cursor: pointer;
+    border-radius: 14px;
+    font-size: clamp(12px, 3.4vw, 14px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-family: 'Raleway', Arial, sans-serif;
+    position: relative; overflow: hidden;
+    transition: transform .15s, box-shadow .15s;
+    text-transform: uppercase;
+  }
+  button:active { transform: scale(0.95) !important; }
+
+  button::before {
+    content:''; position:absolute; top:-50%; left:-60%;
+    width: 40%; height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transform: skewX(-20deg);
+    animation: btnShine 3s ease-in-out infinite;
+  }
+  @keyframes btnShine {
+    0%,70%,100% { left: -60%; opacity:0; }
+    40% { left: 120%; opacity:1; }
+  }
+
+  button::after {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(circle at var(--rx,50%) var(--ry,50%), rgba(255,255,255,0.25) 0%, transparent 60%);
+    opacity:0; transition:opacity 0.4s;
+  }
+  button:active::after { opacity:1; transition:none; }
+
+  .gold {
+    background: linear-gradient(135deg, #7a5800, #ffd700, #ff8c00, #ffd700, #7a5800);
+    background-size: 300%; animation: shimmer 4s linear infinite;
+    color: #1a0a00; box-shadow: 0 0 20px rgba(255,215,0,0.35), 0 4px 15px rgba(0,0,0,0.5);
+  }
+  @keyframes shimmer { 0%{background-position:0%} 100%{background-position:300%} }
+
+  .white {
+    background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .pink-btn {
+    background: linear-gradient(135deg, #8b0057, #ff1493, #ff69b4, #ff1493, #8b0057);
+    background-size: 300%; animation: shimmer 4s linear infinite;
+    color: #fff; box-shadow: 0 0 20px rgba(255,20,147,0.35), 0 4px 15px rgba(0,0,0,0.5);
+  }
+
+  /* ── DRESSCODE CARD ── */
+  .dresscode-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 20px; padding: 14px 16px;
+    text-align: left; width: 100%; max-width: 320px;
+    flex-shrink: 0; backdrop-filter: blur(8px);
+    box-shadow: 0 0 40px rgba(255,215,0,0.07), inset 0 0 20px rgba(255,255,255,0.02);
+    position: relative; overflow: hidden;
+  }
+  .dresscode-card::before {
+    content:''; position:absolute; inset:0;
+    background: repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,215,0,0.015) 10px,rgba(255,215,0,0.015) 20px);
+    pointer-events:none;
+  }
+  .dc-title {
+    color: gold;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: 'Raleway', Arial, sans-serif;
+    font-weight: 700;
+  }
+  .dresscode-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-bottom: 8px;
+    font-size: clamp(0.76rem, 2.7vw, 0.9rem);
+    font-family: 'Raleway', Arial, sans-serif;
+    font-weight: 300;
+    line-height: 1.45;
+    color: rgba(255,255,255,0.88);
+    animation: slideItem 0.5s ease both;
+  }
+  .dresscode-item:nth-child(2){animation-delay:.05s}
+  .dresscode-item:nth-child(3){animation-delay:.1s}
+  .dresscode-item:nth-child(4){animation-delay:.15s}
+  .dresscode-item:nth-child(5){animation-delay:.2s}
+  .dresscode-item:nth-child(6){animation-delay:.25s}
+  @keyframes slideItem { from{opacity:0;transform:translateX(-14px);} to{opacity:1;transform:none;} }
+  .dresscode-item .di-icon { font-size:1rem; flex-shrink:0; margin-top:1px; }
+  .dresscode-item b { color:#ffd700; font-weight:700; }
+
+  /* ── DRESSCODE IMAGE ── */
+  .dc-image-wrap {
+    width: 100%; max-width: 320px; flex-shrink: 0;
+    border-radius: 18px; overflow: hidden;
+    border: 1px solid rgba(255,215,0,0.25);
+    box-shadow: 0 0 30px rgba(255,215,0,0.1);
+    position: relative;
+    animation: imgGlow 3s ease-in-out infinite alternate;
+  }
+  @keyframes imgGlow {
+    from { box-shadow: 0 0 15px rgba(255,215,0,0.08); }
+    to   { box-shadow: 0 0 35px rgba(255,215,0,0.22), 0 0 60px rgba(255,105,180,0.08); }
+  }
+  .dc-image-wrap svg {
+    width: 100%; display: block;
+  }
+  .dc-img-caption {
+    position:absolute; bottom:0; left:0; right:0;
+    padding: 8px 12px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    font-size: 0.68rem; letter-spacing: 3px;
+    color: gold; font-family: 'Raleway', Arial, sans-serif;
+    font-weight: 700; text-align: center;
+  }
+
+  /* ── NO ZONE ── */
+  .no-zone {
+    background: rgba(180,0,0,0.1); border: 1px solid rgba(255,80,80,0.3);
+    border-radius: 12px; padding: 9px 14px;
+    font-size: clamp(0.74rem, 2.6vw, 0.84rem);
+    font-family: 'Raleway', Arial, sans-serif;
+    font-weight: 300;
+    color: rgba(255,200,200,0.8);
+    width: 100%; max-width: 320px; flex-shrink: 0;
+  }
+  .no-zone span { color: #ff8888; font-weight: 700; }
+
+  /* ── CAT WARNING CARD ── */
+  .cat-card {
+    background: rgba(255,180,200,0.06);
+    border: 1px solid rgba(255,105,180,0.35);
+    border-radius: 20px; padding: 14px 16px;
+    text-align: center; width: 100%; max-width: 320px;
+    flex-shrink: 0; backdrop-filter: blur(8px);
+    box-shadow: 0 0 40px rgba(255,20,147,0.08);
+    position: relative; overflow: hidden;
+  }
+  .cat-card::before {
+    content:''; position:absolute; inset:0;
+    background: repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,105,180,0.02) 10px,rgba(255,105,180,0.02) 20px);
+    pointer-events:none;
+  }
+  .cat-title {
+    color: #ff69b4;
+    font-size: 0.65rem; letter-spacing: 4px;
+    margin-bottom: 10px;
+    font-family: 'Raleway', Arial, sans-serif; font-weight: 700;
+  }
+  .cat-face {
+    font-size: 3.2rem;
+    animation: catBounce 2s ease-in-out infinite alternate;
+    display: block; margin-bottom: 8px;
+  }
+  @keyframes catBounce {
+    from { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 8px #ff69b4); }
+    to   { transform: scale(1.1) rotate(3deg); filter: drop-shadow(0 0 20px #ff1493) drop-shadow(0 0 40px rgba(255,105,180,0.4)); }
+  }
+  .cat-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.1rem, 4vw, 1.4rem);
+    font-weight: 600; color: #ff69b4;
+    letter-spacing: 4px; margin-bottom: 6px;
+  }
+  .cat-text {
+    font-size: clamp(0.78rem, 2.8vw, 0.9rem);
+    font-family: 'Raleway', Arial, sans-serif; font-weight: 300;
+    line-height: 1.55; color: rgba(255,200,220,0.9);
+  }
+  .cat-text b { color: #ff69b4; font-weight: 700; }
+  .cat-text em { color: #ffd700; font-style: normal; font-weight: 700; }
+  .glitter-no {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(255,0,80,0.15), rgba(180,0,0,0.2));
+    border: 1px solid rgba(255,80,80,0.4);
+    border-radius: 10px; padding: 7px 14px;
+    margin-top: 8px;
+    font-size: clamp(0.8rem, 2.9vw, 0.92rem);
+    font-family: 'Raleway', Arial, sans-serif; font-weight: 700;
+    color: #ffaaaa; letter-spacing: 2px;
+    animation: noPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes noPulse {
+    0%,100%{box-shadow:0 0 10px rgba(255,0,80,0.15);}
+    50%{box-shadow:0 0 20px rgba(255,0,80,0.35);}
+  }
+
+  /* ── INTRO ── */
+  #intro {
+    position: fixed; inset: 0; display: flex;
+    align-items: center; justify-content: center; flex-direction: column;
+    text-align: center; padding: 28px 24px; gap: 11px; z-index: 20;
+  }
+  #intro.gone { display: none; }
+  .intro-logo {
+    font-size: clamp(3.5rem, 13vw, 5.5rem);
+    animation: logoPulse 2.5s ease-in-out infinite;
+    line-height: 1;
+  }
+  @keyframes logoPulse {
+    0%,100% { filter:drop-shadow(0 0 12px gold) drop-shadow(0 0 35px #ff6600); transform:scale(1); }
+    50%      { filter:drop-shadow(0 0 30px #fff) drop-shadow(0 0 60px gold); transform:scale(1.07); }
+  }
+  .leo-strip {
+    display:flex; gap:4px; font-size:1.3rem; opacity:0.45;
+    animation: stripScroll 6s linear infinite;
+    overflow: hidden; max-width: 280px;
+  }
+  @keyframes stripScroll { from{transform:translateX(0)} to{transform:translateX(-24px)} }
+
+  /* ── TICKET ── */
+  .ticket {
+    border: 1px solid gold; border-radius: 20px;
+    padding: 14px 20px;
+    box-shadow: 0 0 50px rgba(255,215,0,0.15), inset 0 0 30px rgba(255,215,0,0.03);
+    width: 100%; max-width: 300px; flex-shrink: 0;
+    position: relative; overflow: hidden;
+    animation: ticketGlow 3s ease-in-out infinite alternate;
+  }
+  @keyframes ticketGlow {
+    from { box-shadow: 0 0 20px rgba(255,215,0,0.1); }
+    to   { box-shadow: 0 0 60px rgba(255,215,0,0.35), 0 0 90px rgba(255,100,0,0.12); }
+  }
+  .ticket::before {
+    content:''; position:absolute; inset:0;
+    background: repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,215,0,0.02) 8px,rgba(255,215,0,0.02) 16px);
+  }
+  .ticket-date { font-family:'Cormorant Garamond',Georgia,serif; font-size:1.6rem; font-weight:300; color:gold; letter-spacing:5px; margin-bottom:4px; }
+  .ticket-sub  { font-size:0.72rem; opacity:0.5; letter-spacing:2px; font-family:'Raleway',Arial,sans-serif; }
+  .ticket-note { margin-top:10px; font-size:0.75rem; opacity:0.55; font-family:'Raleway',Arial,sans-serif; line-height:1.7; font-style:italic; font-weight:300; }
+
+  /* ── FOOTNOTE ── */
+  .footnote {
+    font-size: clamp(0.7rem, 2.5vw, 0.8rem); opacity: 0.6;
+    font-family: 'Raleway', Arial, sans-serif; font-weight: 300;
+    line-height: 1.6; max-width: 280px; flex-shrink: 0;
+    padding: 8px 14px;
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 12px;
+    background: rgba(255,215,0,0.04);
+  }
+  .footnote b { color: gold; opacity:1; font-weight:700; }
+
+  /* ── DACHA INFO ── */
+  .dacha-info {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,215,0,0.22);
+    border-radius: 16px; padding: 12px 16px;
+    width: 100%; max-width: 300px; flex-shrink: 0;
+    font-family: 'Raleway', Arial, sans-serif;
+    font-size: clamp(0.76rem, 2.7vw, 0.88rem);
+    font-weight: 300; line-height: 1.65; text-align:left;
+  }
+  .dacha-info .di-head { color:gold; font-size:0.65rem; letter-spacing:4px; margin-bottom:8px; text-align:center; font-weight:700; }
+  .dacha-row { display:flex; gap:8px; align-items:flex-start; margin-bottom:5px; }
+  .dacha-row .dr-icon { flex-shrink:0; }
+  .dacha-row b { color:#ffd700; font-weight:700; }
+
+  /* ── BADGE ── */
+  .badge {
+    font-size:clamp(2.5rem,10vw,3.5rem);
+    animation: badgeBounce 1.2s ease-in-out infinite alternate;
+    flex-shrink:0;
+  }
+  @keyframes badgeBounce {
+    from{transform:scale(1) rotate(-4deg); filter:drop-shadow(0 0 10px gold);}
+    to{transform:scale(1.15) rotate(4deg); filter:drop-shadow(0 0 25px #fff) drop-shadow(0 0 50px gold);}
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom:32px; left:50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(15,0,30,0.93);
+    border: 1px solid rgba(255,215,0,0.35);
+    backdrop-filter: blur(12px);
+    color:white; padding:11px 22px;
+    border-radius:40px; font-size:13px;
+    font-family:'Raleway',Arial,sans-serif; font-weight:300;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+    opacity:0; z-index:999; white-space:nowrap;
+  }
+  #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+  /* ── CONFETTI ── */
+  #confettiCanvas {
+    position:fixed; inset:0; pointer-events:none; z-index:4; display:none;
+  }
+  #confettiCanvas.on { display:block; }
+
+  /* ── PROGRESS DOTS ── */
+  .progress-dots {
+    display:flex; gap:7px; justify-content:center; flex-shrink:0;
+  }
+  .dot {
+    width:6px; height:6px; border-radius:50%;
+    background: rgba(255,215,0,0.3);
+    transition: all 0.4s;
+  }
+  .dot.active {
+    background: gold;
+    box-shadow: 0 0 8px gold;
+    transform: scale(1.3);
+  }
+
+  /* ── PULSING RING on cat card ── */
+  .ring-anim {
+    position:absolute; inset:-20px;
+    border-radius:50%;
+    border: 1px solid rgba(255,105,180,0.2);
+    animation: ringExpand 2.5s ease-out infinite;
+    pointer-events:none;
+  }
+  @keyframes ringExpand {
+    0%   { transform:scale(0.7); opacity:0.8; }
+    100% { transform:scale(1.2); opacity:0; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<canvas id="particleCanvas"></canvas>
+<canvas id="sparkleCanvas"></canvas>
+<canvas id="confettiCanvas"></canvas>
+
+<!-- ══ INTRO ══ -->
+<div id="intro">
+  <div class="intro-logo">🐆</div>
+  <div class="icon-row">
+    <span class="icon-shimmer">💎</span>
+    <span class="icon-float">✨</span>
+    <span class="icon-spin">🌟</span>
+    <span class="icon-float" style="animation-delay:.5s">✨</span>
+    <span class="icon-shimmer" style="animation-delay:.3s">💎</span>
+  </div>
+  <h1>MIAU VIP CLUB</h1>
+  <p class="subtitle" style="font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:clamp(0.85rem,3.2vw,1rem);opacity:0.6;">доступ только по приглашению</p>
+  <div class="leo-strip">🖤🐆🖤🐆🖤🐆🖤🐆🖤🐆🖤🐆🖤</div>
+  <div class="btns">
+    <button class="gold" onclick="start()">✦ ВОЙТИ В НОЧЬ ✦</button>
+  </div>
+  <p style="font-size:0.65rem;opacity:0.3;letter-spacing:3px;font-family:'Raleway',Arial,sans-serif;">ONLY FOR THE CHOSEN</p>
+</div>
+
+<!-- ══ S1 — ГОТОВ(А)? ══ -->
+<div id="s1" class="screen">
+  <div class="progress-dots" style="margin-top:14px;">
+    <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="icon-row">
+    <span class="icon-float">🥂</span>
+    <span class="icon-pulse">💫</span>
+    <span class="icon-float" style="animation-delay:.5s">🥂</span>
+  </div>
+  <h1>VIP КВЕСТ</h1>
+  <div class="divider"><div class="divider-line"></div><span class="divider-icon">🐆</span><div class="divider-line"></div></div>
+  <p class="subtitle">ты готов(а) к самой гламурной<br>ночи этого лета?</p>
+  <p class="subtitle" style="opacity:0.45;font-size:0.75rem;letter-spacing:2px;">MIAU ПРИНИМАЕТ ТОЛЬКО СВОИХ</p>
+  <div class="btns">
+    <button class="gold" onclick="next(2)">ДА, Я ГОТОВ(А) ✦</button>
+    <button class="white" onclick="fail('ты всё равно приглашён(а) 😼')">НЕТ, НЕ УВЕРЕН(А)</button>
+  </div>
+</div>
+
+<!-- ══ S2 — ДРЕСС-КОД ══ -->
+<div id="s2" class="screen">
+  <div class="progress-dots" style="margin-top:10px;">
+    <div class="dot"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="icon-row">
+    <span class="icon-spin">💎</span>
+    <span class="icon-shimmer">🐆</span>
+    <span class="icon-spin" style="animation-delay:.8s">✨</span>
+  </div>
+  <h2>ДРЕСС-КОД</h2>
+  <div class="divider"><div class="divider-line"></div><span class="divider-icon">💎</span><div class="divider-line"></div></div>
+  <p class="subtitle" style="font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;">это не просто вечеринка — это выход</p>
+
+  <!-- SVG illustration of glamour outfit -->
+  <div class="dc-image-wrap">
+    <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#0a0020"/>
+          <stop offset="100%" style="stop-color:#200a30"/>
+        </linearGradient>
+        <linearGradient id="dressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#d4a800"/>
+          <stop offset="50%" style="stop-color:#ffd700"/>
+          <stop offset="100%" style="stop-color:#b8860b"/>
+        </linearGradient>
+        <linearGradient id="leoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#c8860a"/>
+          <stop offset="100%" style="stop-color:#8B6914"/>
+        </linearGradient>
+        <linearGradient id="furGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#fff0d0"/>
+          <stop offset="100%" style="stop-color:#d4b080"/>
+        </linearGradient>
+        <radialGradient id="gemGrad">
+          <stop offset="0%" style="stop-color:#ffffff"/>
+          <stop offset="40%" style="stop-color:#00d4ff"/>
+          <stop offset="100%" style="stop-color:#0044ff"/>
+        </radialGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="softglow">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Background -->
+      <rect width="320" height="200" fill="url(#bgGrad)"/>
+
+      <!-- Ambient glow behind figure -->
+      <ellipse cx="160" cy="130" rx="70" ry="90" fill="rgba(255,215,0,0.04)"/>
+
+      <!-- ── LEFT FIGURE: Leo print dress ── -->
+      <!-- Legs / heels -->
+      <rect x="102" y="165" width="8" height="22" rx="2" fill="#c0a060"/>
+      <rect x="118" y="165" width="8" height="22" rx="2" fill="#c0a060"/>
+      <!-- Heel blocks -->
+      <rect x="100" y="182" width="12" height="5" rx="1" fill="#8B6914"/>
+      <rect x="116" y="182" width="12" height="5" rx="1" fill="#8B6914"/>
+      <!-- Body dress (leopard) -->
+      <path d="M100 100 Q106 95 114 93 L116 90 L120 90 L124 93 Q132 95 138 100 L140 145 Q140 160 128 165 L120 168 L112 165 Q100 160 100 145 Z" fill="url(#leoGrad)"/>
+      <!-- Leopard spots -->
+      <ellipse cx="110" cy="110" rx="4" ry="3" fill="rgba(0,0,0,0.3)"/>
+      <ellipse cx="128" cy="108" rx="3" ry="2.5" fill="rgba(0,0,0,0.3)"/>
+      <ellipse cx="118" cy="120" rx="3.5" ry="3" fill="rgba(0,0,0,0.3)"/>
+      <ellipse cx="107" cy="130" rx="3" ry="2" fill="rgba(0,0,0,0.3)"/>
+      <ellipse cx="131" cy="128" rx="4" ry="3" fill="rgba(0,0,0,0.3)"/>
+      <ellipse cx="120" cy="140" rx="3" ry="2.5" fill="rgba(0,0,0,0.3)"/>
+      <ellipse cx="108" cy="148" rx="3" ry="2" fill="rgba(0,0,0,0.3)"/>
+      <ellipse cx="132" cy="146" rx="3.5" ry="2.5" fill="rgba(0,0,0,0.3)"/>
+      <!-- Fur on shoulders -->
+      <path d="M100 100 Q95 85 98 75 Q105 72 108 82 Q106 90 108 95 Z" fill="url(#furGrad)" opacity="0.9"/>
+      <path d="M138 100 Q143 85 140 75 Q133 72 130 82 Q132 90 130 95 Z" fill="url(#furGrad)" opacity="0.9"/>
+      <!-- Fur texture lines -->
+      <line x1="101" y1="95" x2="104" y2="78" stroke="rgba(200,160,80,0.4)" stroke-width="0.5"/>
+      <line x1="104" y1="97" x2="107" y2="79" stroke="rgba(200,160,80,0.4)" stroke-width="0.5"/>
+      <line x1="135" y1="97" x2="132" y2="79" stroke="rgba(200,160,80,0.4)" stroke-width="0.5"/>
+      <line x1="138" y1="95" x2="135" y2="78" stroke="rgba(200,160,80,0.4)" stroke-width="0.5"/>
+      <!-- Head -->
+      <ellipse cx="119" cy="72" rx="11" ry="13" fill="#d4956a"/>
+      <!-- Hair up-do -->
+      <path d="M108 65 Q110 52 119 50 Q128 52 130 65 Q128 60 119 59 Q110 60 108 65Z" fill="#1a0a00"/>
+      <ellipse cx="119" cy="51" rx="7" ry="5" fill="#1a0a00"/>
+      <!-- Crown/tiara -->
+      <path d="M112 56 L114 49 L119 53 L124 49 L126 56" stroke="#ffd700" stroke-width="1.5" fill="none"/>
+      <circle cx="119" cy="53" r="2" fill="url(#gemGrad)" filter="url(#glow)"/>
+      <!-- Diamond necklace -->
+      <path d="M109 88 Q119 92 129 88" stroke="rgba(255,215,0,0.6)" stroke-width="0.8" fill="none"/>
+      <circle cx="119" cy="91" r="2.5" fill="url(#gemGrad)" filter="url(#glow)"/>
+
+      <!-- Sparkles around left figure -->
+      <text x="96" y="78" font-size="8" opacity="0.8" filter="url(#glow)">✦</text>
+      <text x="135" y="75" font-size="6" opacity="0.7" filter="url(#glow)">✦</text>
+      <text x="138" y="115" font-size="7" opacity="0.6" filter="url(#glow)">✦</text>
+
+      <!-- ── CENTER FIGURE: Gold sequin dress ── -->
+      <!-- Heels -->
+      <rect x="150" y="165" width="8" height="22" rx="2" fill="#c0a060"/>
+      <rect x="166" y="165" width="8" height="22" rx="2" fill="#c0a060"/>
+      <rect x="148" y="182" width="12" height="5" rx="1" fill="#8B6914"/>
+      <rect x="164" y="182" width="12" height="5" rx="1" fill="#8B6914"/>
+      <!-- Gold sequin mini dress -->
+      <path d="M146 105 Q155 98 162 97 L166 95 L170 95 L174 97 Q181 98 190 105 L188 148 Q188 162 175 166 L166 168 L157 166 Q144 162 144 148 Z" fill="url(#dressGrad)"/>
+      <!-- Sequin shimmer lines -->
+      <line x1="152" y1="105" x2="152" y2="162" stroke="rgba(255,255,255,0.15)" stroke-width="0.6"/>
+      <line x1="158" y1="102" x2="158" y2="164" stroke="rgba(255,255,255,0.12)" stroke-width="0.6"/>
+      <line x1="164" y1="100" x2="164" y2="166" stroke="rgba(255,255,255,0.18)" stroke-width="0.6"/>
+      <line x1="170" y1="100" x2="170" y2="166" stroke="rgba(255,255,255,0.12)" stroke-width="0.6"/>
+      <line x1="176" y1="102" x2="176" y2="164" stroke="rgba(255,255,255,0.15)" stroke-width="0.6"/>
+      <line x1="182" y1="105" x2="182" y2="162" stroke="rgba(255,255,255,0.1)" stroke-width="0.6"/>
+      <!-- Arms / gloves -->
+      <path d="M144 105 Q138 115 136 130 Q136 140 140 148" stroke="rgba(200,180,255,0.5)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M190 105 Q196 115 198 130 Q198 140 194 148" stroke="rgba(200,180,255,0.5)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- Clutch -->
+      <rect x="193" y="138" width="16" height="11" rx="3" fill="#b8860b" stroke="#ffd700" stroke-width="0.8"/>
+      <circle cx="201" cy="143" r="2" fill="url(#gemGrad)" filter="url(#glow)"/>
+      <!-- Head -->
+      <ellipse cx="166" cy="75" rx="12" ry="13" fill="#c8a882"/>
+      <!-- Hair -->
+      <path d="M154 70 Q157 56 166 54 Q175 56 178 70 Q174 63 166 62 Q158 63 154 70Z" fill="#2a1800"/>
+      <ellipse cx="166" cy="55" rx="9" ry="6" fill="#2a1800"/>
+      <!-- Earrings (chandelier) -->
+      <line x1="154" y1="77" x2="150" y2="87" stroke="#ffd700" stroke-width="0.8"/>
+      <line x1="150" y1="87" x2="148" y2="93" stroke="#ffd700" stroke-width="0.8"/>
+      <line x1="150" y1="87" x2="152" y2="93" stroke="#ffd700" stroke-width="0.8"/>
+      <circle cx="150" cy="94" r="2" fill="url(#gemGrad)" filter="url(#glow)"/>
+      <circle cx="148" cy="94" r="1.5" fill="url(#gemGrad)" filter="url(#glow)"/>
+      <circle cx="152" cy="94" r="1.5" fill="url(#gemGrad)" filter="url(#glow)"/>
+      <line x1="178" y1="77" x2="182" y2="87" stroke="#ffd700" stroke-width="0.8"/>
+      <line x1="182" y1="87" x2="180" y2="93" stroke="#ffd700" stroke-width="0.8"/>
+      <line x1="182" y1="87" x2="184" y2="93" stroke="#ffd700" stroke-width="0.8"/>
+      <circle cx="182" cy="94" r="2" fill="url(#gemGrad)" filter="url(#glow)"/>
+
+      <!-- Centre figure sparkles -->
+      <text x="140" y="97" font-size="9" opacity="0.9" filter="url(#glow)">✦</text>
+      <text x="185" y="90" font-size="7" opacity="0.8" filter="url(#glow)">✦</text>
+      <text x="144" y="155" font-size="6" opacity="0.6" filter="url(#glow)">✦</text>
+      <text x="188" y="150" font-size="8" opacity="0.7" filter="url(#glow)">✦</text>
+
+      <!-- ── RIGHT FIGURE: velvet + feather boa ── -->
+      <!-- Heels -->
+      <rect x="200" y="165" width="8" height="22" rx="2" fill="#9060a0"/>
+      <rect x="216" y="165" width="8" height="22" rx="2" fill="#9060a0"/>
+      <rect x="198" y="182" width="12" height="5" rx="1" fill="#60206a"/>
+      <rect x="214" y="182" width="12" height="5" rx="1" fill="#60206a"/>
+      <!-- Velvet dress (purple/black) -->
+      <path d="M196 105 Q203 100 210 98 L214 96 L218 96 L222 98 Q229 100 236 105 L235 150 Q234 163 222 167 L214 169 L206 167 Q194 163 195 150 Z" fill="#3d0060"/>
+      <!-- Velvet sheen -->
+      <path d="M196 105 Q200 100 208 98 L208 150 Q200 155 195 150 Z" fill="rgba(120,0,180,0.25)"/>
+      <!-- Corset detail -->
+      <line x1="207" y1="98" x2="207" y2="130" stroke="rgba(255,215,0,0.4)" stroke-width="0.8"/>
+      <line x1="211" y1="97" x2="211" y2="131" stroke="rgba(255,215,0,0.4)" stroke-width="0.8"/>
+      <line x1="215" y1="97" x2="215" y2="131" stroke="rgba(255,215,0,0.4)" stroke-width="0.8"/>
+      <line x1="219" y1="97" x2="219" y2="131" stroke="rgba(255,215,0,0.4)" stroke-width="0.8"/>
+      <!-- Feather boa -->
+      <path d="M194 103 Q188 95 185 88 Q183 80 187 76 Q192 74 194 80" stroke="none" fill="rgba(255,182,193,0.7)"/>
+      <path d="M194 103 Q186 96 183 88 Q180 79 185 75 Q190 72 193 78" stroke="rgba(255,182,193,0.5)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M194 103 Q187 97 184 90 Q181 82 186 77" stroke="rgba(255,220,230,0.4)" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- Feather fluffy bits -->
+      <ellipse cx="186" cy="79" rx="5" ry="3" fill="rgba(255,182,193,0.6)" transform="rotate(-30 186 79)"/>
+      <ellipse cx="184" cy="88" rx="5" ry="3" fill="rgba(255,200,210,0.6)" transform="rotate(-15 184 88)"/>
+      <ellipse cx="188" cy="96" rx="4" ry="2.5" fill="rgba(255,182,193,0.5)" transform="rotate(10 188 96)"/>
+      <!-- Head -->
+      <ellipse cx="214" cy="76" rx="11" ry="13" fill="#e8c098"/>
+      <!-- Hair (wavy down) -->
+      <path d="M203 72 Q205 58 214 56 Q223 58 225 72" fill="#3d1a00"/>
+      <path d="M203 72 Q200 80 202 90 Q203 96 205 100" stroke="#3d1a00" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M225 72 Q227 80 226 90 Q224 96 222 100" stroke="#3d1a00" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- Gem headpiece -->
+      <path d="M207 60 Q214 55 221 60" stroke="#ffd700" stroke-width="1" fill="none"/>
+      <circle cx="214" cy="56" r="3" fill="url(#gemGrad)" filter="url(#glow)"/>
+      <!-- Necklace -->
+      <path d="M205 90 Q214 95 223 90" stroke="rgba(180,0,200,0.6)" stroke-width="0.8" fill="none"/>
+      <circle cx="214" cy="94" r="2.5" fill="rgba(200,0,255,0.8)" filter="url(#glow)"/>
+
+      <!-- Right figure sparkles -->
+      <text x="230" y="88" font-size="8" opacity="0.7" filter="url(#glow)">✦</text>
+      <text x="233" y="130" font-size="6" opacity="0.6" filter="url(#glow)">✦</text>
+      <text x="190" y="116" font-size="7" opacity="0.5" filter="url(#glow)">✦</text>
+
+      <!-- Large ambient sparkles -->
+      <text x="42" y="50" font-size="12" opacity="0.5" filter="url(#softglow)" fill="#ffd700">✦</text>
+      <text x="270" y="55" font-size="10" opacity="0.4" filter="url(#softglow)" fill="#ffd700">✦</text>
+      <text x="30" y="155" font-size="8" opacity="0.35" filter="url(#softglow)" fill="#ff69b4">✦</text>
+      <text x="280" y="160" font-size="11" opacity="0.45" filter="url(#softglow)" fill="#ffd700">✦</text>
+      <text x="55" y="110" font-size="7" opacity="0.3" filter="url(#softglow)" fill="#fff">✦</text>
+      <text x="255" y="105" font-size="9" opacity="0.4" filter="url(#softglow)" fill="#fff">✦</text>
+
+      <!-- Label at the bottom -->
+      <rect x="0" y="188" width="320" height="12" fill="rgba(0,0,0,0.5)"/>
+      <text x="160" y="197" text-anchor="middle" font-family="Raleway, Arial, sans-serif" font-size="7" letter-spacing="3" fill="rgba(255,215,0,0.8)">ШИК · БЛЕСК · ЛЕОПАРД · МЕХ · БРИЛЛИАНТЫ</text>
+    </svg>
+    <div class="dc-img-caption">✦ ОБРАЗ ВЕЧЕРА ✦</div>
+  </div>
+
+  <div class="dresscode-card">
+    <div class="dc-title">✦ ЧТО НАДЕТЬ ✦</div>
+    <div class="dresscode-item"><span class="di-icon">🐆</span><span><b>Леопард — наш символ.</b> Принт в любом виде: платье, аксессуар, сумка. Чем больше — тем лучше.</span></div>
+    <div class="dresscode-item"><span class="di-icon">💎</span><span><b>Бриллианты и пайетки.</b> Стразы, хрусталь, блёстки в одежде. Нужно сиять.</span></div>
+    <div class="dresscode-item"><span class="di-icon">🪶</span><span><b>Меха и перья.</b> Боа, меховая шуба, отделка мехом. Роскошь обязательна.</span></div>
+    <div class="dresscode-item"><span class="di-icon">👑</span><span><b>Тотальный гламур.</b> Атлас, бархат, золото, серебро. Корсеты, мини, вечерние образы.</span></div>
+    <div class="dresscode-item"><span class="di-icon">👠</span><span><b>Обувь — часть образа.</b> Босоножки с кристаллами.</span></div>
+  </div>
+
+  <div class="no-zone"><span>✗ ЗАПРЕЩЕНО:</span> джинсы, plain-футболка, спортивный стиль — не для MIAU 🙅</div>
+
+  <div class="btns">
+    <button class="gold" onclick="next(3)">МОЙ ОБРАЗ ГОТОВ 💎</button>
+    <button class="white" onclick="fail('подберём вместе идеальный образ 👑')">НУЖНА ПОМОЩЬ</button>
+  </div>
+</div>
+
+<!-- ══ S3 — КОШКА ЛИЛИ ══ -->
+<div id="s3" class="screen">
+  <div class="progress-dots" style="margin-top:10px;">
+    <div class="dot"></div><div class="dot"></div><div class="dot active"></div><div class="dot"></div>
+  </div>
+  <div class="icon-row">
+    <span class="icon-sway">🪶</span>
+    <span class="icon-pulse">🐱</span>
+    <span class="icon-sway" style="animation-delay:.5s">🪶</span>
+  </div>
+  <h2>ВАЖНО</h2>
+  <div class="divider"><div class="divider-line"></div><span class="divider-icon">🐱</span><div class="divider-line"></div></div>
+
+  <div class="cat-card">
+    <div class="cat-title">✦ СПЕЦИАЛЬНЫЙ ГОСТЬ ✦</div>
+    <span class="cat-face">🐱</span>
+    <div class="cat-name">КОШКА ЛИЛИ</div>
+    <p class="cat-text">
+      На вечеринке будет присутствовать<br>
+      <b>Лили</b> — главная VIP-гостья дачи.<br><br>
+      Лили очень <em>элегантна</em> и не потерпит<br>
+      ни крупинки глиттера в своей шерсти.
+    </p>
+    <div class="glitter-no">✗ ГЛИТТЕР ЗАПРЕЩЁН ✗</div>
+    <p class="cat-text" style="margin-top:10px;font-size:0.75rem;opacity:0.7;">
+      Пайетки, стразы и блёстки <em>на ткани</em> — welcome.<br>
+      Рассыпчатый глиттер — исключительно нет.<br>
+      Берегите Лили 🐾
+    </p>
+  </div>
+
+  <div class="btns">
+    <button class="gold" onclick="next(4)">ПОНЯТНО, ЛИЛИ ЗАЩИЩЕНА 🐾</button>
+    <button class="white" onclick="fail('Лили запомнит тебя 😼')">А ЕСЛИ ВСЁ РАВНО?</button>
+  </div>
+</div>
+
+<!-- ══ S4 — ДЕТАЛИ ══ -->
+<div id="s4" class="screen">
+  <div class="progress-dots" style="margin-top:12px;">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot active"></div>
+  </div>
+  <div class="icon-row">
+    <span class="icon-float">🔥</span>
+    <span class="icon-pulse">🐆</span>
+    <span class="icon-float" style="animation-delay:.6s">🔥</span>
+  </div>
+  <h2>ФИНАЛЬНЫЙ ВХОД</h2>
+  <div class="divider"><div class="divider-line"></div><span class="divider-icon">🏡</span><div class="divider-line"></div></div>
+
+  <div class="dacha-info">
+    <div class="di-head">✦ ДЕТАЛИ ВЕЧЕРА ✦</div>
+    <div class="dacha-row"><span class="dr-icon">📅</span><span><b>18 июля</b> — запомни эту дату</span></div>
+    <div class="dacha-row"><span class="dr-icon">🕐</span><span><b>Точное время</b> сообщим позднее</span></div>
+    <div class="dacha-row"><span class="dr-icon">🏡</span><span><b>Место — дача.</b> Приватная luxury вечеринка на природе</span></div>
+    <div class="dacha-row"><span class="dr-icon">🎁</span><span><b>Виш-лист</b> — ожидайте, скоро пришлём</span></div>
+  </div>
+
+  <p class="subtitle">ты будешь?</p>
+  <div class="btns">
+    <button class="gold" onclick="win()">Я БУДУ 🔥</button>
+    <button class="white" onclick="fail('ты пожалеешь 😼 — ещё есть время передумать')">НЕ СМОГУ</button>
+  </div>
+</div>
+
+<!-- ══ WIN ══ -->
+<div id="win" class="screen" style="z-index:6;">
+  <div class="badge" style="margin-top:10px;">🐆</div>
+  <div class="icon-row">
+    <span class="icon-spin">💎</span>
+    <span class="icon-shimmer">✨</span>
+    <span class="icon-pulse">🌟</span>
+    <span class="icon-shimmer" style="animation-delay:.5s">✨</span>
+    <span class="icon-spin" style="animation-delay:.3s">💎</span>
+  </div>
+  <h1>ДОБРО ПОЖАЛОВАТЬ<br>В MIAU</h1>
+  <div class="divider"><div class="divider-line"></div><span class="divider-icon">🐆</span><div class="divider-line"></div></div>
+  <p class="subtitle">ты официально в VIP списке</p>
+
+  <div class="ticket">
+    <div class="ticket-date">18 ИЮЛЯ</div>
+    <div class="ticket-sub">MIAU VIP · PRIVATE NIGHT · ДАЧА</div>
+    <div class="ticket-note">⏰ Точное время сообщим позднее<br>🎁 Виш-лист — ожидай скоро<br>🐱 Береги Лили от глиттера</div>
+  </div>
+
+  <div class="footnote">
+    👇 <b>Нажми «Поделиться»</b> и отправь<br>
+    скриншот или ссылку <b>обратно мне</b> —<br>
+    так я буду знать, что ты подтвердил(а) участие
+  </div>
+
+  <div class="btns">
+    <button class="gold" onclick="share()">ПОДЕЛИТЬСЯ 📲</button>
+  </div>
+
+  <p style="font-size:0.65rem;opacity:0.35;font-family:'Raleway',Arial,sans-serif;font-weight:300;letter-spacing:3px;flex-shrink:0;">
+    🐆 шик · блеск · меха · леопард · бриллианты 🐆
+  </p>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ══ BACKGROUND THEMES ══ */
+const BG_THEMES = {
+  intro: {
+    particles: { color:'#ffd700', glow:'#ff8800', count:70, size:[0.8,3], speed:[0.2,0.8] },
+    bg: (ctx, w, h, t) => {
+      const g = ctx.createRadialGradient(w/2, h*0.3, 0, w/2, h*0.3, w*0.85);
+      g.addColorStop(0, `rgba(80,25,0,${0.2+Math.sin(t*0.5)*0.06})`);
+      g.addColorStop(0.4, `rgba(40,0,70,${0.12})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+      for(let i=0;i<6;i++){
+        const angle=(t*0.08+i*Math.PI/3);
+        const gRay=ctx.createLinearGradient(w/2,h/2,w/2+Math.cos(angle)*w,h/2+Math.sin(angle)*h);
+        gRay.addColorStop(0,`rgba(255,215,0,${0.045+Math.sin(t+i)*0.02})`);
+        gRay.addColorStop(1,'rgba(255,215,0,0)');
+        ctx.fillStyle=gRay;
+        ctx.beginPath(); ctx.moveTo(w/2,h/2);
+        ctx.arc(w/2,h/2,w,angle-0.14,angle+0.14);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+  },
+  s1: {
+    particles: { color:'#ff69b4', glow:'#ff1493', count:55, size:[0.8,2.5], speed:[0.2,0.7] },
+    bg: (ctx, w, h, t) => {
+      const g=ctx.createRadialGradient(w*0.5,h*0.2,0,w*0.5,h*0.5,w);
+      g.addColorStop(0,`rgba(100,0,80,${0.22+Math.sin(t*0.4)*0.05})`);
+      g.addColorStop(0.6,`rgba(40,0,60,0.1)`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      for(let i=0;i<4;i++){
+        ctx.beginPath();
+        ctx.moveTo(0,h*0.6+Math.sin(t*0.3+i)*30);
+        for(let x=0;x<w;x+=5){
+          ctx.lineTo(x,h*0.6+Math.sin(x*0.008+t*0.3+i*0.8)*25+i*15);
+        }
+        ctx.strokeStyle=`rgba(255,105,180,${0.05+i*0.01})`;
+        ctx.lineWidth=1.5; ctx.stroke();
+      }
+    }
+  },
+  s2: {
+    particles: { color:'#ffd700', glow:'#ffffaa', count:90, size:[0.5,2.5], speed:[0.3,1.2] },
+    bg: (ctx, w, h, t) => {
+      const g=ctx.createRadialGradient(w*0.3,h*0.2,0,w*0.5,h*0.5,w*0.9);
+      g.addColorStop(0,`rgba(60,30,0,${0.2+Math.sin(t*0.3)*0.05})`);
+      g.addColorStop(0.5,`rgba(30,0,50,0.12)`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      for(let i=0;i<8;i++){
+        const x=w*(0.05+i*0.125),y=h*(0.15+Math.sin(t*0.2+i)*0.1);
+        const alpha=Math.max(0,Math.sin(t*0.8+i*1.3)*0.5+0.1);
+        const r=40+Math.sin(t*0.5+i)*20;
+        const gr=ctx.createRadialGradient(x,y,0,x,y,r);
+        gr.addColorStop(0,`rgba(255,215,0,${alpha*0.7})`);
+        gr.addColorStop(0.4,`rgba(255,165,0,${alpha*0.3})`);
+        gr.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=gr; ctx.fillRect(0,0,w,h);
+      }
+    }
+  },
+  s3: {
+    particles: { color:'#ff69b4', glow:'#ff1493', count:60, size:[0.6,2], speed:[0.2,0.8] },
+    bg: (ctx, w, h, t) => {
+      const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.85);
+      g.addColorStop(0,`rgba(80,0,60,${0.2+Math.sin(t*0.4)*0.06})`);
+      g.addColorStop(0.5,`rgba(30,0,50,0.12)`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      // Heart-ish floating blobs
+      for(let i=0;i<5;i++){
+        const cx=w*(0.1+i*0.2),cy=h*(0.3+Math.sin(t*0.25+i)*0.2);
+        const r=30+Math.sin(t*0.4+i)*15;
+        const gr=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+        gr.addColorStop(0,`rgba(255,20,147,${0.07+Math.sin(t*0.5+i)*0.03})`);
+        gr.addColorStop(1,'rgba(255,20,147,0)');
+        ctx.fillStyle=gr; ctx.fillRect(0,0,w,h);
+      }
+    }
+  },
+  s4: {
+    particles: { color:'#ff4500', glow:'#ff6600', count:55, size:[1,2.8], speed:[0.3,0.9] },
+    bg: (ctx, w, h, t) => {
+      const g=ctx.createRadialGradient(w/2,h,0,w/2,h*0.5,w*0.8);
+      g.addColorStop(0,`rgba(120,20,0,${0.25+Math.sin(t*0.5)*0.05})`);
+      g.addColorStop(0.5,`rgba(60,0,20,0.12)`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      for(let i=0;i<5;i++){
+        const cx=w*(0.1+i*0.2),baseY=h;
+        ctx.beginPath(); ctx.moveTo(cx-15,baseY);
+        const flameH=(60+Math.sin(t*0.6+i)*30)*(1+i*0.3);
+        ctx.bezierCurveTo(cx-8,baseY-flameH*0.6,cx+8,baseY-flameH*0.8,cx,baseY-flameH);
+        ctx.bezierCurveTo(cx-6,baseY-flameH*0.7,cx+15,baseY-flameH*0.4,cx+15,baseY);
+        const fg=ctx.createLinearGradient(cx,baseY,cx,baseY-flameH);
+        fg.addColorStop(0,`rgba(255,80,0,0.12)`);
+        fg.addColorStop(0.5,`rgba(255,140,0,0.07)`);
+        fg.addColorStop(1,'rgba(255,200,0,0)');
+        ctx.fillStyle=fg; ctx.fill();
+      }
+    }
+  },
+  win: {
+    particles: { color:'#ffd700', glow:'#ff00ff', count:100, size:[0.8,3.5], speed:[0.2,1.1] },
+    bg: (ctx, w, h, t) => {
+      const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.85);
+      g.addColorStop(0,`rgba(80,20,80,${0.22+Math.sin(t*0.4)*0.06})`);
+      g.addColorStop(0.5,`rgba(40,10,0,0.1)`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      for(let i=0;i<4;i++){
+        const r=80+i*60,alpha=0.04+Math.sin(t*0.3+i)*0.025;
+        ctx.beginPath();
+        ctx.arc(w/2,h/2,r*(1+Math.sin(t*0.2)*0.05),0,Math.PI*2);
+        ctx.strokeStyle=`rgba(255,215,0,${alpha})`;
+        ctx.lineWidth=1.2; ctx.stroke();
+      }
+      [[0.1,0.1],[0.9,0.1],[0.1,0.9],[0.9,0.9]].forEach(([rx,ry],i)=>{
+        const a=Math.abs(Math.sin(t*0.5+i));
+        const sg=ctx.createRadialGradient(w*rx,h*ry,0,w*rx,h*ry,90);
+        sg.addColorStop(0,`rgba(255,215,0,${a*0.18})`);
+        sg.addColorStop(1,'rgba(255,215,0,0)');
+        ctx.fillStyle=sg; ctx.fillRect(0,0,w,h);
+      });
+    }
+  }
+};
+
+/* ══ CANVASES ══ */
+const bgC=document.getElementById('bgCanvas');
+const bgX=bgC.getContext('2d');
+const ptC=document.getElementById('particleCanvas');
+const ptX=ptC.getContext('2d');
+const spC=document.getElementById('sparkleCanvas');
+const spX=spC.getContext('2d');
+
+function resizeAll(){
+  [bgC,ptC,spC].forEach(c=>{ c.width=window.innerWidth; c.height=window.innerHeight; });
+}
+resizeAll();
+window.addEventListener('resize',resizeAll);
+
+/* ══ PARTICLES ══ */
+let currentTheme='intro';
+let pArr=[];
+
+function initParticles(theme){
+  const cfg=BG_THEMES[theme].particles;
+  pArr=Array.from({length:cfg.count},()=>({
+    x:Math.random()*ptC.width,
+    y:Math.random()*ptC.height,
+    r:cfg.size[0]+Math.random()*(cfg.size[1]-cfg.size[0]),
+    vy:-(cfg.speed[0]+Math.random()*(cfg.speed[1]-cfg.speed[0])),
+    vx:(Math.random()-0.5)*0.5,
+    alpha:Math.random(),
+    da:0.008+Math.random()*0.012,
+    color:cfg.color,
+    glow:cfg.glow
+  }));
+}
+initParticles('intro');
+
+/* ══ SPARKLES (star-shaped bursts) ══ */
+let sparkles=[];
+function addSparkle(x,y){
+  sparkles.push({x,y,life:1,size:8+Math.random()*14,rot:Math.random()*Math.PI*2,color:'#ffd700'});
+}
+function drawStar(ctx,x,y,r,rot){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(rot);
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a1=i*Math.PI*2/5-Math.PI/2;
+    const a2=(i+0.5)*Math.PI*2/5-Math.PI/2;
+    if(i===0) ctx.moveTo(Math.cos(a1)*r,Math.sin(a1)*r);
+    else ctx.lineTo(Math.cos(a1)*r,Math.sin(a1)*r);
+    ctx.lineTo(Math.cos(a2)*r*0.4,Math.sin(a2)*r*0.4);
+  }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+let t=0;
+function renderLoop(){
+  t+=0.016;
+  const w=bgC.width,h=bgC.height;
+
+  bgX.clearRect(0,0,w,h);
+  bgX.fillStyle='#000'; bgX.fillRect(0,0,w,h);
+  BG_THEMES[currentTheme].bg(bgX,w,h,t);
+
+  ptX.clearRect(0,0,w,h);
+  pArr.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    p.alpha+=p.da;
+    if(p.alpha>1||p.alpha<0) p.da*=-1;
+    if(p.y<-10){ p.y=h+5; p.x=Math.random()*w; }
+    ptX.beginPath();
+    ptX.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ptX.fillStyle=p.color;
+    ptX.globalAlpha=Math.max(0,Math.min(1,p.alpha));
+    ptX.shadowColor=p.glow; ptX.shadowBlur=10;
+    ptX.fill();
+    ptX.shadowBlur=0; ptX.globalAlpha=1;
+  });
+
+  // Sparkle layer
+  spX.clearRect(0,0,w,h);
+  sparkles=sparkles.filter(s=>s.life>0);
+  sparkles.forEach(s=>{
+    s.life-=0.04; s.rot+=0.08;
+    spX.globalAlpha=s.life*0.9;
+    spX.fillStyle=s.color;
+    spX.shadowColor=s.color; spX.shadowBlur=12;
+    drawStar(spX,s.x,s.y,s.size*s.life,s.rot);
+    spX.shadowBlur=0; spX.globalAlpha=1;
+  });
+
+  requestAnimationFrame(renderLoop);
+}
+renderLoop();
+
+/* ══ RANDOM SPARKLES ══ */
+setInterval(()=>{
+  if(Math.random()<0.5){
+    addSparkle(Math.random()*spC.width, Math.random()*spC.height*0.7);
+  }
+},400);
+
+/* ══ AUDIO ══ */
+let AC;
+function ensureAC(){
+  if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended') AC.resume();
+}
+function beep(freq,type,dur,vol=0.22){
+  ensureAC();
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type=type; o.frequency.value=freq;
+  g.gain.setValueAtTime(vol,AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);
+  o.start(); o.stop(AC.currentTime+dur);
+}
+function sfxClick()  { beep(660,'sine',0.1,0.16); }
+function sfxPortal() { [220,330,440,550].forEach((f,i)=>setTimeout(()=>beep(f,'sine',0.3,0.2),i*100)); }
+function sfxWin()    { [523,659,784,1047,1318,1568].forEach((f,i)=>setTimeout(()=>beep(f,'sine',0.28,0.25),i*80)); }
+function sfxCat()    { [440,494,523,587].forEach((f,i)=>setTimeout(()=>beep(f,'triangle',0.25,0.18),i*110)); }
+
+/* ══ NAVIGATION ══ */
+function start(){
+  ensureAC();
+  sfxPortal();
+  document.getElementById('intro').classList.add('gone');
+  switchTheme('s1');
+  showScreen('s1');
+}
+
+function next(n){
+  sfxClick();
+  if(n===3) sfxCat();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  switchTheme('s'+n);
+  showScreen('s'+n);
+}
+
+function win(){
+  sfxWin();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  switchTheme('win');
+  showScreen('win');
+  startConfetti();
+  // Burst sparkles on win
+  for(let i=0;i<12;i++){
+    setTimeout(()=>{
+      addSparkle(
+        spC.width*0.1+Math.random()*spC.width*0.8,
+        spC.height*0.1+Math.random()*spC.height*0.5
+      );
+    }, i*100);
+  }
+}
+
+function fail(msg){ sfxClick(); showToast(msg); }
+
+function switchTheme(id){
+  currentTheme=BG_THEMES[id]?id:'intro';
+  initParticles(currentTheme);
+}
+
+function showScreen(id){
+  const el=document.getElementById(id);
+  el.classList.remove('active');
+  void el.offsetWidth;
+  el.classList.add('active');
+  el.scrollTop=0;
+}
+
+/* ══ TOAST ══ */
+let toastT;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ══ SHARE ══ */
+function share(){
+  sfxClick();
+  const txt='🐆💎 Я подтверждаю участие в MIAU VIP CLUB!\n\n✨ 18 июля · Дача · Приватная вечеринка\n\n💎 Дресс-код: шик, глэм, леопард, меха, пайетки\n🐆 Леопардовый принт — обязателен\n💫 Бриллианты, пайетки, перья — welcome!\n🐱 Берегите кошку Лили — глиттер запрещён!\n\n⏰ Точное время — ожидайте сообщения\n🎁 Виш-лист — скоро!\n\n#MIAU #VIP #PrivateNight 🐆';
+  if(navigator.share){
+    navigator.share({title:'MIAU VIP CLUB 🐆',text:txt}).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(txt)
+      .then(()=>showToast('скопировано — отправь мне! 📋'))
+      .catch(()=>showToast('скопируй и отправь обратно 🐆'));
+  }
+}
+
+/* ══ CONFETTI ══ */
+const cfC=document.getElementById('confettiCanvas');
+const cfX=cfC.getContext('2d');
+const COLS=['#ffd700','#ff69b4','#c0c0c0','#ff6600','#fff','#cc00ff','#00e5ff','#ff1493','#ffa0c0'];
+let cfArr=[],cfActive=false;
+
+function startConfetti(){
+  cfC.classList.add('on');
+  cfC.width=window.innerWidth; cfC.height=window.innerHeight;
+  cfActive=true;
+  for(let i=0;i<200;i++) cfArr.push(mkCf());
+  cfLoop();
+  setTimeout(()=>{cfActive=false;},7000);
+}
+function mkCf(){
+  return {
+    x:Math.random()*window.innerWidth,y:-10-Math.random()*500,
+    r:2+Math.random()*7,
+    color:COLS[Math.floor(Math.random()*COLS.length)],
+    vx:(Math.random()-0.5)*4,vy:1.5+Math.random()*4,
+    rot:Math.random()*Math.PI*2,spin:(Math.random()-0.5)*0.2,
+    alpha:1,shape:['rect','diamond','circle','star'][Math.floor(Math.random()*4)]
+  };
+}
+function cfLoop(){
+  cfX.clearRect(0,0,cfC.width,cfC.height);
+  for(let i=cfArr.length-1;i>=0;i--){
+    const c=cfArr[i];
+    c.x+=c.vx; c.y+=c.vy; c.rot+=c.spin;
+    if(c.y>cfC.height+20){
+      if(cfActive){cfArr[i]=mkCf();continue;}
+      else{cfArr.splice(i,1);continue;}
+    }
+    cfX.save();
+    cfX.translate(c.x,c.y); cfX.rotate(c.rot);
+    cfX.fillStyle=c.color; cfX.globalAlpha=c.alpha;
+    cfX.shadowColor=c.color; cfX.shadowBlur=5;
+    if(c.shape==='diamond'){
+      cfX.beginPath();
+      cfX.moveTo(0,-c.r); cfX.lineTo(c.r*0.6,0); cfX.lineTo(0,c.r); cfX.lineTo(-c.r*0.6,0);
+      cfX.closePath(); cfX.fill();
+    } else if(c.shape==='circle'){
+      cfX.beginPath(); cfX.arc(0,0,c.r*0.6,0,Math.PI*2); cfX.fill();
+    } else if(c.shape==='star'){
+      cfX.beginPath();
+      for(let j=0;j<5;j++){
+        const a1=j*Math.PI*2/5-Math.PI/2;
+        const a2=(j+0.5)*Math.PI*2/5-Math.PI/2;
+        if(j===0) cfX.moveTo(Math.cos(a1)*c.r,Math.sin(a1)*c.r);
+        else cfX.lineTo(Math.cos(a1)*c.r,Math.sin(a1)*c.r);
+        cfX.lineTo(Math.cos(a2)*c.r*0.4,Math.sin(a2)*c.r*0.4);
+      }
+      cfX.closePath(); cfX.fill();
+    } else {
+      cfX.fillRect(-c.r/2,-c.r/3,c.r,c.r*0.55);
+    }
+    cfX.restore();
+  }
+  if(cfArr.length>0) requestAnimationFrame(cfLoop);
+  else cfC.classList.remove('on');
+}
+</script>
+</body>
+</html>
